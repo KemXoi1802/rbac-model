@@ -35,6 +35,9 @@ FOREIGN KEY(role_id) REFERENCES roles(id),
 FOREIGN KEY(permission_id) REFERENCES permissions(id)
 );
 
+alter table grants add sub_role_id int
+alter table grants add constraint sub_role_id FOREIGN KEY (role_id) REFERENCES roles(id);
+
 
 INSERT INTO roles(role_name) VALUES ('admin');
 insert into roles(role_name) VALUES ('supper admin');
@@ -47,6 +50,7 @@ INSERT INTO users(username, password, role_id) VALUES ('yenth', 'yenth', 2);
 SELECT * from users;
 
 INSERT INTO resources(resource_name) VALUES ('post');
+Insert into resources(resource_name) VALUES ('user');
 
 SELECT * FROM resources;
 
@@ -55,12 +59,16 @@ INSERT INTO permissions(resource_id, action) VALUES (1, 'create');
 INSERT INTO permissions(resource_id, action) VALUES (1, 'update');
 INSERT INTO permissions(resource_id, action) VALUES (1, 'delete');
 
+insert into permissions(resource_id, action) values (2, 'change_password');
+
 select * from permissions;
 
 insert into grants(role_id, permission_id) VALUES (1, 1);
 insert into grants(role_id, permission_id) VALUES (1, 2);
 insert into grants(role_id, permission_id) VALUES (1, 3);
 insert into grants(role_id, permission_id) VALUES (1, 4);
+
+insert into grants(role_id, permission_id) VALUES (2, 5);
 
 select * from grants;
 
@@ -84,9 +92,10 @@ select * from grants;
 -- resource_name getting from url
 -- action mean, http method 
 select * from resources where resources.resource_name = 'post';
+select * from resources as re where re.resource_name = 'user';
 
 -- http://localhost:port/api/api_ver/resource/
 
-select * from permissions as p inner join grants as g on g.role_id = 1
-							   inner join resources as re on p.resource_id = re.id and re.resource_name = 'post'
-				where p.id = g.permission_id and p.`action` = 'update';
+select COUNT(*) from permissions as p inner join grants as g on g.role_id = 2 or g.sub_role_id = 2
+							   inner join resources as re on p.resource_id = re.id and re.resource_name = 'user'
+				where p.id = g.permission_id and p.`action` = 'change_password';
